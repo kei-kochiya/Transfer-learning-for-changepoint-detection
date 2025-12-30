@@ -112,20 +112,27 @@ def algorithm_1_select_sources(obs_y, y_0, n_k, n_0, t_hat_k=50):
             selected_indices.append(k)
     return selected_indices
 
-def combine_target_with_sources(y_target, obs_y, selected_indices, n_target, n_source):
-    ratio = n_source / n_target
+def combine(y, y1):
+    y = np.array(y)
+    y1 = np.array(y1)
     
-    P_down = construct_P_n0_n(n_target, n_source)
+    n0 = len(y)
+    n1 = len(y1)
+    n_total = n0 + n1
     
-    weighted_sum = y_target.copy()
-    total_samples = np.ones(n_target) 
+    yt = np.zeros(n_total)
     
-    for k in selected_indices:
-        y_s_aligned = P_down @ obs_y[k, :]
-        
-        weighted_sum += y_s_aligned * ratio
-        total_samples += ratio
-            
-    y_combined = weighted_sum / total_samples
+    j = np.arange(1, n0 + 1)
     
-    return y_combined
+    insert_positions = np.ceil(j * n1 / n0) + j - 1
+    
+    insert_positions = insert_positions.astype(int)
+    
+    yt[insert_positions] = y
+    
+    mask = np.ones(n_total, dtype=bool)
+    mask[insert_positions] = False
+
+    yt[mask] = y1[:np.sum(mask)]
+    
+    return yt
